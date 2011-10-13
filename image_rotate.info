@@ -1,0 +1,5 @@
+name = "Image rotate"
+description = "Rotates Images"
+core = 6.x
+package = Other
+
