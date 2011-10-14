@@ -2,96 +2,91 @@
 
 
 /*
-* Implementation of hook_menu()
-*/
-
-/*function image_rotate_menu() {
-
-  $items['imagerotate/%'] = array (
-    'page callback' => 'image_rotate_get_image',
-    'page arguments' => array(1),
-    'access callback' => TRUE,
-    'type' => MENU_CALLBACK,
-  );
-
-  return $items;
-
-}*/
-
-
-
-/*
  * implementation of hook_theme()
  */
 
 //@TODO Cleanup
-//@TODO pfade für fonts im moudl selbs und images sollten in files ... verschoben werden
+//@TODO pfade für fonts im moudul selbst und images sollten in files ... verschoben werden
+//@TODO implement admin settings page instead of hardcoded values.
 
-function image_rotate_theme() {
+//idea: create a png for every text. like permission.png delte.png and check before creating if a png with the textname exists? neccessary?
 
-  global $base_url;
-
-  //Header ("Content-type: image/png");
-
-  $im = imagecreate (100, 400);
-
-  $black = ImageColorAllocate ($im, 0, 0, 0);
-  $white = ImageColorAllocate ($im, 255, 255, 255);
-  $grey = ImageColorAllocate ($im, 128, 128, 128);
-
+function image_rotate_theme($text) {
 
   $path = drupal_get_path('module', 'image_rotate');
 
-  //the absolute path http://www.goobar.de/foo/bar..
-  //$font  = "$base_url/$path/arial.ttf";
+  //All images resist in /fonts inside the module folder
+  //Path is absolute from server root /var/www/...
+  $font = $_SERVER['DOCUMENT_ROOT'] . "/$path/fonts/arial.ttf";
+  $angle = 90;
+  $font_size = 12;
+  $text_padding    = 0; // Img padding - around text
 
-  //@TODO saved all images in root of drupal
-  $font = $_SERVER['DOCUMENT_ROOT']. "/arial.ttf";
-  dsm($font);
-  //dsm($_SERVER);
+  //get the bounding box for the text so that the text matches the canvas
+  $textBox = calculateTextBox($text, $font, $font_size, $angle);
+  $imgWidth    = $textBox["width"] + $text_padding;
+  $imgHeight    = $textBox["height"] + $text_padding;
+
+  //create canvas with transparency
+  $im = imageCreateTruecolor ($imgWidth, $imgHeight);
+
+  imageSaveAlpha($im, true);
+  imageAlphaBlending($im, false);
+  $transparent_color = imagecolorAllocateAlpha($im, 255, 255, 255, 127);
+  imageFilledRectangle($im, 0, 0, $imgWidth, $imgHeight, $transparent_color);
+  imageAlphaBlending($im, true);
+
+  //text color
+  $black = ImageColorAllocate ($im, 0, 0, 0);
 
 
+  //positioning of the text inside the box
+  $posX = $textBox["left"] + ($imgWidth / 2) - ($textBox["width"] / 2);
+  $posY = $textBox["top"] + ($imgHeight / 2) - ($textBox["height"] / 2);
+  ImageTTFText ($im, $font_size, $angle, $posX, $posY ,$black, $font, $text);
 
+  $drupal_file_dir = $_SERVER['DOCUMENT_ROOT'] . '/' . file_directory_path() . '/' ;
 
-  ImageTTFText ($im, 20, 90, 50, 100, $grey, $font, 'Test');
-
-  imagepng($im, 'test.png');
+  //@TODO save images into own folder
+  imagePng($im, $drupal_file_dir . 'test.png');
 
   //read it for base64
-  $handle = fopen('test.png', "r");
-  $binary = fread($handle, filesize('test.png'));
+  $handle = fopen($drupal_file_dir . 'test.png', "r");
+  $binary = fread($handle, filesize($drupal_file_dir . 'test.png'));
   fclose($handle);
 
-  //ImageDestroy ($im);
-
-  // echo getcwd();  -> /var/www/WORKSPACE_DRUPAL/KONTEXTWORK/spaces
+  ImageDestroy ($im);
 
 
   return '<img src="data:image/png;base64,' . base64_encode($binary) . '" />';
   //return base64_encode($image);
 
 
-/*
-ob_start();
-        imagepng($image);
-        printf('<img src="data:image/png;base64,%s"/>',
-                base64_encode(ob_get_clean()));
-
-        imagedestroy($myImage);*/
-
-
-  //echo "<img src='test.png'/>";
-  //ImageDestroy ($im);
-  //exit();
-
 }
 
 
 /*
- * render the image
+ *  Calculate the size of the bounding box that is needed to place the text in
  *
- *
- *
+ * @return
+ *   array with positions, sizes
  */
 
-//@TODO implement admin settings page instead of hardcoded values.
+function calculateTextBox($text,$fontFile,$fontSize,$fontAngle) {
+
+  $boundingbox = imageTTFBbox($fontSize,$fontAngle,$fontFile,$text);
+  $minX = min(array($boundingbox[0],$boundingbox[2],$boundingbox[4],$boundingbox[6]));
+  $maxX = max(array($boundingbox[0],$boundingbox[2],$boundingbox[4],$boundingbox[6]));
+  $minY = min(array($boundingbox[1],$boundingbox[3],$boundingbox[5],$boundingbox[7]));
+  $maxY = max(array($boundingbox[1],$boundingbox[3],$boundingbox[5],$boundingbox[7])); 
+
+  return array(
+     "left"   => abs($minX) - 1,
+     "top"    => abs($minY) - 1,
+     "width"  => $maxX - $minX,
+     "height" => $maxY - $minY
+    );
+}
+
+
+
