@@ -5,11 +5,7 @@
  * implementation of hook_theme()
  */
 
-//@TODO Cleanup
-//@TODO pfade für fonts im moudul selbst und images sollten in files ... verschoben werden
-//@TODO implement admin settings page instead of hardcoded values.
-
-//idea: create a png for every text. like permission.png delte.png and check before creating if a png with the textname exists? neccessary?
+//@TODO caching?
 
 function image_rotate_theme($text) {
 
@@ -17,10 +13,12 @@ function image_rotate_theme($text) {
 
   //All images resist in /fonts inside the module folder
   //Path is absolute from server root /var/www/...
-  $font = $_SERVER['DOCUMENT_ROOT'] . "/$path/fonts/arial.ttf";
-  $angle = 90;
-  $font_size = 12;
-  $text_padding    = 0; // Img padding - around text
+
+  $fontFile = variable_get('image_rotate_fontFile', 'arial.ttf');
+  $font = $_SERVER['DOCUMENT_ROOT'] . "/$path/fonts/$fontFile";
+  $angle = variable_get('image_rotate_angle', 90);
+  $font_size = variable_get('image_rotate_fontSize', 10);
+  $text_padding    = variable_get('image_rotate_variable_get', 0); // Img padding - around text
 
   //get the bounding box for the text so that the text matches the canvas
   $textBox = calculateTextBox($text, $font, $font_size, $angle);
@@ -47,7 +45,7 @@ function image_rotate_theme($text) {
 
   $drupal_file_dir = $_SERVER['DOCUMENT_ROOT'] . '/' . file_directory_path() . '/' ;
 
-  //@TODO save images into own folder
+  //@TODO save images into own folder?
   imagePng($im, $drupal_file_dir . 'test.png');
 
   //read it for base64
@@ -56,12 +54,7 @@ function image_rotate_theme($text) {
   fclose($handle);
 
   ImageDestroy ($im);
-
-
   return '<img src="data:image/png;base64,' . base64_encode($binary) . '" />';
-  //return base64_encode($image);
-
-
 }
 
 
