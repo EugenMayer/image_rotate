@@ -1,13 +1,28 @@
 <?php
 
 
+
+/*
+ * Implementation of hook_theme()
+ */
+
+function image_rotate_theme()
+{
+  return array(
+    'image_rotate' => array(
+      'arguments' => array(),
+    ),
+  );
+}
+
 /*
  * implementation of hook_theme()
  */
 
 //@TODO caching?
 
-function image_rotate_theme($text) {
+function theme_image_rotate($text)
+{
 
   $path = drupal_get_path('module', 'image_rotate');
 
@@ -18,15 +33,15 @@ function image_rotate_theme($text) {
   $font = $_SERVER['DOCUMENT_ROOT'] . "/$path/fonts/$fontFile";
   $angle = variable_get('image_rotate_angle', 90);
   $font_size = variable_get('image_rotate_fontSize', 10);
-  $text_padding    = variable_get('image_rotate_variable_get', 0); // Img padding - around text
+  $text_padding = variable_get('image_rotate_variable_get', 0); // Img padding - around text
 
   //get the bounding box for the text so that the text matches the canvas
   $textBox = calculateTextBox($text, $font, $font_size, $angle);
-  $imgWidth    = $textBox["width"] + $text_padding;
-  $imgHeight    = $textBox["height"] + $text_padding;
+  $imgWidth = $textBox["width"] + $text_padding;
+  $imgHeight = $textBox["height"] + $text_padding;
 
   //create canvas with transparency
-  $im = imageCreateTruecolor ($imgWidth, $imgHeight);
+  $im = imageCreateTruecolor($imgWidth, $imgHeight);
 
   imageSaveAlpha($im, true);
   imageAlphaBlending($im, false);
@@ -35,15 +50,15 @@ function image_rotate_theme($text) {
   imageAlphaBlending($im, true);
 
   //text color
-  $black = ImageColorAllocate ($im, 0, 0, 0);
+  $black = ImageColorAllocate($im, 0, 0, 0);
 
 
   //positioning of the text inside the box
   $posX = $textBox["left"] + ($imgWidth / 2) - ($textBox["width"] / 2);
   $posY = $textBox["top"] + ($imgHeight / 2) - ($textBox["height"] / 2);
-  ImageTTFText ($im, $font_size, $angle, $posX, $posY ,$black, $font, $text);
+  ImageTTFText($im, $font_size, $angle, $posX, $posY, $black, $font, $text);
 
-  $drupal_file_dir = $_SERVER['DOCUMENT_ROOT'] . '/' . file_directory_path() . '/' ;
+  $drupal_file_dir = $_SERVER['DOCUMENT_ROOT'] . '/' . file_directory_path() . '/';
 
   //@TODO save images into own folder?
   imagePng($im, $drupal_file_dir . 'test.png');
@@ -53,7 +68,7 @@ function image_rotate_theme($text) {
   $binary = fread($handle, filesize($drupal_file_dir . 'test.png'));
   fclose($handle);
 
-  ImageDestroy ($im);
+  ImageDestroy($im);
   return '<img src="data:image/png;base64,' . base64_encode($binary) . '" />';
 }
 
@@ -65,20 +80,21 @@ function image_rotate_theme($text) {
  *   array with positions, sizes
  */
 
-function calculateTextBox($text,$fontFile,$fontSize,$fontAngle) {
+function calculateTextBox($text, $fontFile, $fontSize, $fontAngle)
+{
 
-  $boundingbox = imageTTFBbox($fontSize,$fontAngle,$fontFile,$text);
-  $minX = min(array($boundingbox[0],$boundingbox[2],$boundingbox[4],$boundingbox[6]));
-  $maxX = max(array($boundingbox[0],$boundingbox[2],$boundingbox[4],$boundingbox[6]));
-  $minY = min(array($boundingbox[1],$boundingbox[3],$boundingbox[5],$boundingbox[7]));
-  $maxY = max(array($boundingbox[1],$boundingbox[3],$boundingbox[5],$boundingbox[7])); 
+  $boundingbox = imageTTFBbox($fontSize, $fontAngle, $fontFile, $text);
+  $minX = min(array($boundingbox[0], $boundingbox[2], $boundingbox[4], $boundingbox[6]));
+  $maxX = max(array($boundingbox[0], $boundingbox[2], $boundingbox[4], $boundingbox[6]));
+  $minY = min(array($boundingbox[1], $boundingbox[3], $boundingbox[5], $boundingbox[7]));
+  $maxY = max(array($boundingbox[1], $boundingbox[3], $boundingbox[5], $boundingbox[7]));
 
   return array(
-     "left"   => abs($minX) - 1,
-     "top"    => abs($minY) - 1,
-     "width"  => $maxX - $minX,
-     "height" => $maxY - $minY
-    );
+    "left" => abs($minX) - 1,
+    "top" => abs($minY) - 1,
+    "width" => $maxX - $minX,
+    "height" => $maxY - $minY
+  );
 }
 
 
