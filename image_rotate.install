@@ -1,0 +1,42 @@
+<?php
+/**
+ * @file
+ * Contains install and update functions for image_rotate
+ */
+
+/**
+ * implementation of hook_requirements
+ *
+ * check if tmp dir avaliable or could be created
+ */
+
+function image_rotate_requirements($phase) {
+
+  if($phase == 'runtime') {
+
+    $path = file_create_path('image_rotate/tmp');
+    if (!file_check_directory($path)) {
+      $path = file_directory_path() . '/image_rotate';
+      file_check_directory($path, FILE_CREATE_DIRECTORY);
+      $path .= '/tmp';
+      file_check_directory($path, FILE_CREATE_DIRECTORY);
+    }
+
+    //tmp dir avaliable
+    $requirements['image_rotate_tmp'] = array(
+      'title' => t('Image rotate tmp folder'),
+      'severity' => REQUIREMENT_OK,
+      'value' => t('Exists'),
+    );
+
+    //if unable to create the temp dir
+    if (!file_check_directory($path)) {
+      $requirements['image_rotate_tmp']['description'] = t('Image Rotate tnp folder, %path could not be created due to a misconfigured files directory.            Please ensure that the files directory is correctly configured and that the webserver has permission to create directories.', array('%path' => $path));
+      $requirements['image_rotate_tmp']['severity'] = REQUIREMENT_ERROR;
+      $requirements['image_rotate_tmp']['value'] = t('Unable to create');
+    }
+
+  }
+
+  return $requirements;
+}
