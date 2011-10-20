@@ -21,8 +21,7 @@ function image_rotate_theme()
 
 //@TODO caching?
 
-function theme_image_rotate($text)
-{
+function theme_image_rotate($text) {
 
   $path = drupal_get_path('module', 'image_rotate');
 
@@ -58,18 +57,40 @@ function theme_image_rotate($text)
   $posY = $textBox["top"] + ($imgHeight / 2) - ($textBox["height"] / 2);
   ImageTTFText($im, $font_size, $angle, $posX, $posY, $black, $font, $text);
 
-  $drupal_file_dir = $_SERVER['DOCUMENT_ROOT'] . '/' . file_directory_path() . '/';
+  $image_rotate_file_dir = $_SERVER['DOCUMENT_ROOT'] . '/' . file_directory_path() . '/image_rotate/tmp/';
 
-  //@TODO save images into own folder?
-  imagePng($im, $drupal_file_dir . 'test.png');
+  //@TODO user http://www.php.net/manual/de/function.tempnam.php do not save image, delete it after
+
+
+
+  //get unique filename like image_rotate_eHr47t
+  $temp_image = tempnam($image_rotate_file_dir, 'image_rotate_');
+  //get filename only
+  $temp_image_name = basename($temp_image);
+
+  dsm($temp_image);
+
+
+  //write the temporary image
+  imagePng($im, $image_rotate_file_dir . $temp_image_name . '.png');
+  $image = $temp_image . '.png';
+  dsm($image);
+
+
+  //imagePng($im, $drupal_file_dir . "$text.png");
 
   //read it for base64
-  $handle = fopen($drupal_file_dir . 'test.png', "r");
-  $binary = fread($handle, filesize($drupal_file_dir . 'test.png'));
+  $handle = fopen($image, "r");
+  $binary = fread($handle, filesize($image));
   fclose($handle);
 
-  ImageDestroy($im);
+  //delete the images
+  //unlink($temp_image);
+  unlink($image);
+
+  //ImageDestroy($im);
   return '<img src="data:image/png;base64,' . base64_encode($binary) . '" />';
+
 }
 
 
