@@ -21,7 +21,7 @@ function image_rotate_theme()
 
 //@TODO caching?
 
-function theme_image_rotate($text, $extra_space = TRUE) {
+function theme_image_rotate($text, $extra_space = TRUE, $image_title = "") {
   if($extra_space) {
     $text = str_replace(' ','  ', $text);
   }
@@ -75,7 +75,7 @@ function theme_image_rotate($text, $extra_space = TRUE) {
   //delete the images
   unlink($path);
 
-  return '<img src="data:image/png;base64,' . base64_encode($binary) . '" />';
+  return '<img src="data:image/png;base64,' . base64_encode($binary) . '" title="'.$image_title.'"/>';
 }
 
 
