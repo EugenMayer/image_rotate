@@ -59,7 +59,11 @@ function theme_image_rotate($text, $extra_space = TRUE, $image_title = "") {
   $posY = $textBox["top"] + ($imgHeight / 2) - ($textBox["height"] / 2);
   ImageTTFText($im, $font_size, $angle, $posX, $posY, $black, $font, $text);
 
-  $base_dir = file_directory_temp();
+  $base_dir = file_directory_temp() . 'image_rotate';
+  if (is_dir(realpath($base_dir)) == false) {
+    $p = $base_dir;
+    mkdir($p, 0777, true);
+  }
 
   //get unique filename like image_rotate_eHr47t
   $filename = basename( tempnam( "$base_dir", 'image_rotate_') ) . '.png';
