@@ -66,8 +66,7 @@ function theme_image_rotate($text, $extra_space = TRUE, $image_title = "") {
   }
 
   //get unique filename like image_rotate_eHr47t
-  $filename = basename( tempnam( "$base_dir", 'image_rotate_') ) . '.png';
-  $path = "$base_dir/$filename";
+  $path = tempnam( "$base_dir", 'image_rotate_' );
   //write the temporary image
   imagePng($im,$path);
 
