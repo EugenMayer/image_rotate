@@ -6,8 +6,7 @@
  * Implementation of hook_theme()
  */
 
-function image_rotate_theme()
-{
+function image_rotate_theme() {
   return array(
     'image_rotate' => array(
       'arguments' => array(),
@@ -22,8 +21,8 @@ function image_rotate_theme()
 //@TODO caching?
 
 function theme_image_rotate($text, $extra_space = TRUE, $image_title = "") {
-  if($extra_space) {
-    $text = str_replace(' ','  ', $text);
+  if ($extra_space) {
+    $text = str_replace(' ', '  ', $text);
   }
 
   $path = drupal_get_path('module', 'image_rotate');
@@ -45,30 +44,31 @@ function theme_image_rotate($text, $extra_space = TRUE, $image_title = "") {
   //create canvas with transparency
   $im = imageCreateTruecolor($imgWidth, $imgHeight);
 
-  imageSaveAlpha($im, true);
-  imageAlphaBlending($im, false);
+  imageSaveAlpha($im, TRUE);
+  imageAlphaBlending($im, FALSE);
   $transparent_color = imagecolorAllocateAlpha($im, 255, 255, 255, 127);
   imageFilledRectangle($im, 0, 0, $imgWidth, $imgHeight, $transparent_color);
-  imageAlphaBlending($im, true);
+  imageAlphaBlending($im, TRUE);
 
   //text color
   $black = ImageColorAllocate($im, 0, 0, 0);
 
   //positioning of the text inside the box
-  $posX = $textBox["left"] + ($imgWidth / 2) - ($textBox["width"] / 2);
+  // added a +4 offset to work in PHP > 5.3.3
+  $posX = $textBox["left"] + ($imgWidth / 2) - ($textBox["width"] / 2) + 4;
   $posY = $textBox["top"] + ($imgHeight / 2) - ($textBox["height"] / 2);
   ImageTTFText($im, $font_size, $angle, $posX, $posY, $black, $font, $text);
 
-  $base_dir = file_directory_temp() . 'image_rotate';
-  if (is_dir(realpath($base_dir)) == false) {
+  $base_dir = file_directory_temp() . '/image_rotate';
+  if (is_dir(realpath($base_dir)) == FALSE) {
     $p = $base_dir;
-    mkdir($p, 0777, true);
+    mkdir($p, 0777, TRUE);
   }
 
   //get unique filename like image_rotate_eHr47t
-  $path = tempnam( "$base_dir", 'image_rotate_' );
+  $path = tempnam("$base_dir", 'image_rotate_');
   //write the temporary image
-  imagePng($im,$path);
+  imagePng($im, $path);
 
   //read it for base64
   $handle = fopen($path, "r");
@@ -78,7 +78,7 @@ function theme_image_rotate($text, $extra_space = TRUE, $image_title = "") {
   //delete the images
   unlink($path);
 
-  return '<img src="data:image/png;base64,' . base64_encode($binary) . '" title="'.$image_title.'"/>';
+  return '<img src="data:image/png;base64,' . base64_encode($binary) . '" title="' . $image_title . '"/>';
 }
 
 
@@ -89,9 +89,7 @@ function theme_image_rotate($text, $extra_space = TRUE, $image_title = "") {
  *   array with positions, sizes
  */
 
-function calculateTextBox($text, $fontFile, $fontSize, $fontAngle)
-{
-
+function calculateTextBox($text, $fontFile, $fontSize, $fontAngle) {
   $boundingbox = imageTTFBbox($fontSize, $fontAngle, $fontFile, $text);
   $minX = min(array($boundingbox[0], $boundingbox[2], $boundingbox[4], $boundingbox[6]));
   $maxX = max(array($boundingbox[0], $boundingbox[2], $boundingbox[4], $boundingbox[6]));
@@ -101,7 +99,7 @@ function calculateTextBox($text, $fontFile, $fontSize, $fontAngle)
   return array(
     "left" => abs($minX) - 1,
     "top" => abs($minY) - 1,
-    "width" => $maxX - $minX,
+    "width" => $maxX - $minX +4, // added a +4 offset to work in PHP > 5.3.3
     "height" => $maxY - $minY
   );
 }

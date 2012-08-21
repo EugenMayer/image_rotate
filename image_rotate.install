@@ -40,3 +40,12 @@ function image_rotate_requirements($phase) {
 
   return $requirements;
 }
+
+function image_rotate_update_6001() {
+  $old_tmp = file_directory_temp() . 'image_rotate';
+  if (file_exists($old_tmp)) {
+    unlink($old_tmp);
+  }
+  $ret = array();
+  return $ret;
+}
